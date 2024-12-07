@@ -50,6 +50,8 @@ fun RoomListScreen() {
             )
         }
     ) { innerPadding ->
+        // Retrieve context here for navigation
+        val context = LocalContext.current
         LazyColumn(
             contentPadding = PaddingValues(4.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -57,29 +59,30 @@ fun RoomListScreen() {
         ) {
             val rooms = RoomService.findAll() // Fetch the list of rooms from RoomService.
             items(rooms, key = { it.id }) { room ->
-                RoomItem(room) // Pass room directly to RoomItem.
+                RoomItem(
+                    room = room,
+                    modifier = Modifier.clickable {
+                        // Navigate to the RoomDetailActivity
+                        val intent = Intent(context, RoomActivity::class.java).apply {
+                            putExtra(RoomActivity.ROOM_PARAM, room.id.toString())
+                        }
+                        context.startActivity(intent)
+                    }
+                )
             }
         }
     }
 }
 
 @Composable
-fun RoomItem(room: RoomDto) {
-    val context = LocalContext.current // Get context for starting the activity.
-
+fun RoomItem(room: RoomDto, modifier: Modifier = Modifier) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         border = BorderStroke(1.dp, PurpleGrey80),
-        modifier = Modifier.padding(8.dp).clickable {
-            // Create intent and start RoomDetailActivity here.
-            val intent = Intent(context, RoomDetailActivity::class.java).apply {
-                putExtra(RoomActivity.ROOM_PARAM, room.id) // Pass the room ID as an extra.
-            }
-            context.startActivity(intent)
-        }
+        modifier = modifier.padding(8.dp)
     ) {
         Row(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(20.dp), // Use Modifier here to avoid overriding the parameter
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -102,10 +105,19 @@ fun RoomItem(room: RoomDto) {
     }
 }
 
+
 @Preview(showBackground = true)
 @Composable
 fun RoomItemPreview() {
     AutomacorpTheme {
-        RoomItem(RoomService.findAll()[0])
+        RoomItem(
+            RoomDto(
+                id = 1,
+                name = "Living Room",
+                currentTemperature = 22.5,
+                targetTemperature = 24.0,
+                windows = emptyList() // Provide a value for 'windows', e.g., an empty list
+            )
+        )
     }
 }
